@@ -1,0 +1,607 @@
+<?xml version="1.0"?>
+<sdf version="1.10">
+
+    <!--El nombre del mundo-->
+    <world name="euclidian_world">
+
+        <!--Física del mundo
+       Especifica el tipo y las propiedades del motor dinámico
+        Tipo se refiere al motor dinámico (biblioteca de física); hay opciones como Ode, Bullet, Simbody y Dart-->
+        <physics name="1ms" type="ignored">
+
+            <!--Step
+            Tamaño del paso para la simulación y factor para el tiempo real y el tiempo en la simulación-->
+            <max_step_size>0.001</max_step_size>
+            <real_time_factor>1.0</real_time_factor>
+
+        </physics>
+
+        <!--Abstract
+        Interfaz de física abstracta diseñada para soportar la simulación y el desarrollo rápido de
+        aplicaciones robóticas-->
+        <plugin
+            filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics">
+        </plugin>
+
+        <!--Esto es responsable de crear modelos
+        mover modelos, eliminarlos y muchos otros comandos del
+        usuario.-->
+        <plugin
+            filename="gz-sim-user-commands-system"
+            name="gz::sim::systems::UserCommands">
+        </plugin>
+
+        <!--Muestra
+        la escena del mundo.-->
+        <plugin
+            filename="gz-sim-scene-broadcaster-system"
+            name="gz::sim::systems::SceneBroadcaster">
+        </plugin>
+
+        <!-- Configura TODOS los complementos para la Interfaz Gráfica de Usuario -->
+        <gui fullscreen="0">
+
+            <!-- Camera -->
+            <camera name="user_camera">
+                <projection_type>orthographic</projection_type>
+            </camera>
+
+            <!-- 3D scene -->
+            <plugin filename="MinimalScene" name="3D View">
+
+                <!-- Configura los atributos básicos en la vista 3D -->
+                <gz-gui>
+
+                    <title>3D View</title>
+
+                    <!-- Si es verdadero, mostrará la barra de título azul sobre el complemento
+                    con el nombre mencionado en la etiqueta <title> -->
+                    <property type="bool" key="showTitleBar">false</property>
+
+                    <!-- Es el estado del complemento; puede estar acoplado en su lugar usando "docked"
+                    o puede estar flotante -->
+                    <property type="string" key="state">docked</property>
+
+                </gz-gui>
+
+                <!-- Esta es la escena de renderizado -->
+                <engine>ogre2</engine>
+                <scene>scene</scene>
+
+                <!-- Estos especifican el color ambiente y el color de fondo de la escena -->
+                <ambient_light>0.4 0.4 0.4</ambient_light>
+                <background_color>0.8 0.8 0.8</background_color>
+
+            </plugin>
+
+            <!-- Estos son responsables de mostrar la escena 3D de nuestro mundo -->
+            <plugin filename="GzSceneManager" name="Scene Manager">
+                <gz-gui>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="width" type="double">7</property>
+                    <property key="height" type="double">7</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                </gz-gui>
+            </plugin>
+
+            <!-- Con esto podemos interactuar con el mundo, pero no con sus componentes -->
+            <plugin filename="InteractiveViewControl" name="Interactive view control">
+                <gz-gui>
+                    <property key="resizable" type="bool">false</property>
+                    <property key="width" type="double">5</property>
+                    <property key="height" type="double">5</property>
+                    <property key="state" type="string">floating</property>
+                    <property key="showTitleBar" type="bool">false</property>
+                </gz-gui>
+            </plugin>
+
+            <!-- Complemento de Ángulo de Vista -->
+            <plugin filename="ViewAngle" name="View Angle">
+            </plugin>
+
+            <!-- Control del Mundo -->
+            <plugin filename="WorldControl" name="World control">
+                <gz-gui>
+                    <title>World control</title>
+                    <property type="bool" key="showTitleBar">false</property>
+                    <property type="bool" key="resizable">false</property>
+                    <property type="double" key="height">77</property>
+                    <property type="double" key="width">177</property>
+                    <property type="double" key="z">1</property>
+
+                    <property type="string" key="state">floating</property>
+                    <anchors target="3D View">
+                        <line own="left" target="left" />
+                        <line own="bottom" target="bottom" />
+                    </anchors>
+                </gz-gui>
+
+                <!-- Si es verdadero, tendremos el botón de reproducir-pausar en la esquina inferior izquierda -->
+                <play_pause>true</play_pause>
+
+                <!-- Si es verdadero, mostrará un botón en la esquina inferior izquierda
+                con la simulación paso a paso -->
+                <step>true</step>
+
+                <!-- Si es verdadero, la simulación se pausará al inicio de Gazebo -->
+                <start_paused>true</start_paused>
+
+
+                <service>/world/euclidian_world/control</service>
+
+                <!-- La etiqueta especifica el tema en el que se publican las estadísticas del mundo
+                como el tiempo de simulación y el tiempo real -->
+                <stats_topic>/world/euclidian_world/stats</stats_topic>
+
+            </plugin>
+
+            <!-- Estadísticas del mundo. Responsable de mostrar las estadísticas del mundo -->
+            <plugin filename="WorldStats" name="World stats">
+
+                <gz-gui>
+                    <title>World stats</title>
+                    <property type="bool" key="showTitleBar">false</property>
+                    <property type="bool" key="resizable">false</property>
+                    <property type="double" key="height">110</property>
+                    <property type="double" key="width">290</property>
+                    <property type="double" key="z">1</property>
+
+                    <property type="string" key="state">floating</property>
+                    <anchors target="3D View">
+                        <line own="right" target="right" />
+                        <line own="bottom" target="bottom" />
+                    </anchors>
+                </gz-gui>
+
+                <!-- Con estas etiquetas podemos elegir qué valores mostrar (expande la esquina inferior derecha para 
+                ver estos valores). Podemos elegir en qué <topic> se publicarán estos valores. Intentemos
+                ejecutar el mundo y escuchar ese tema -->
+                <sim_time>true</sim_time>
+                <real_time>true</real_time>
+                <real_time_factor>true</real_time_factor>
+                <iterations>true</iterations>
+
+                <!-- Podemos elegir en qué <topic> se publicarán los valores -->
+                <topic>/world/euclidian_world/stats</topic>
+
+            </plugin>
+
+            <!-- Árbol de entidades -->
+            <plugin filename="EntityTree" name="Entity tree"></plugin>
+
+        </gui>
+
+        <!-- Configura la luz ambiental (como si fuera un sol). Especifica la fuente de luz en el mundo
+        El <type> de la luz puede ser puntual, direccional o de spot -->
+        <light
+            type="directional" name="sun">
+
+            <!-- Mostrar sombras -->
+            <cast_shadows>true</cast_shadows>
+
+            <!-- Configura la posición (primeros tres términos) y la orientación (rollo, inclinación, guiñada) 
+            de la luz con respecto al marco mencionado en el atributo relative_to.
+            Esto es ignorado por nosotros, por lo que la posición se configura con respecto al marco inercial -->
+            <pose>0 0 10 0 0 0</pose>
+
+            <!-- Color de la luz difusa -->
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+
+            <!-- Color de la luz especular -->
+            <specular>0.2 0.2 0.2 1</specular>
+
+            <!-- Especifica las propiedades de atenuación de la luz -->
+            <attenuation>
+
+                <!-- Especifica el rango de la luz -->
+                <range>1000</range>
+
+                <!-- Especifica el factor de atenuación constante;
+                1 nunca atenúa y 0 atenuación completa -->
+                <constant>0.9</constant>
+
+                <!-- Especifica el factor de atenuación lineal; 1 significa atenuar de manera
+                uniforme a lo largo de la distancia. -->
+                <linear>0.01</linear>
+
+
+                <quadratic>0.001</quadratic>
+
+            </attenuation>
+
+            <!-- Especifica la dirección de la luz, aplicable
+            solo a la luz puntual y direccional -->
+            <direction>-0.5 0.1 -0.9</direction>
+
+        </light>
+
+        <!-- Para añadir un robot al mundo -->
+        <model name="euclidian_robot">
+
+            <!-- Posición (x, y, z) y orientación (roll, pitch, yaw)
+            con respecto al marco inercial-->
+            <pose relative_to="world">-0.5 -0.725 0 0 0 0</pose>
+
+            <!-- Estructura principal -->
+            <link name="main_structure">
+
+                <pose relative_to="__model__">0 0 0 0 0 0</pose>
+
+                <!-- Atributos físicos del enlace-->
+                <inertial>
+
+                    <!-- Masa del cuerpo (kilogramos)-->
+                    <mass>65.057</mass>
+
+                    <!-- Tensor de inercia (kg * m²)-->
+                    <inertia>
+                        <ixx>15.105</ixx>
+                        <ixy>0.0</ixy>
+                        <ixz>0.0</ixz>
+                        <iyy>30.128</iyy>
+                        <iyz>0.0</iyz>
+                        <izz>33.425</izz>
+                    </inertia>
+
+                </inertial>
+
+                <!-- Configura los atributos de colisión -->
+                <collision name="collision">
+
+                    <!-- Configura el tipo de geometría -->
+                    <geometry>
+
+                        <!-- Importar malla desde un archivo STL -->
+                        <mesh>
+                            <uri>model://ROS/STL/frame.stl</uri>
+                            <!--<scale>0.001 0.001 0.001</scale>-->
+                        </mesh>
+
+                    </geometry>
+
+                </collision>
+
+                <!-- Configura los atributos visuales -->
+                <visual name="visual">
+
+                    <!-- Configura el tipo de geometría -->
+                    <geometry>
+
+                        <!-- Importar malla desde un archivo STL -->
+                        <mesh>
+                            <uri>model://ROS/STL/frame.stl</uri>
+                            <!--<scale>0.001 0.001 0.001</scale>-->
+                        </mesh>
+
+                    </geometry>
+
+                    <!-- Color tutorial: https://classic.gazebosim.org/tutorials?tut=color_model -->
+                    <material>  
+                        <ambient>0.1 0.1 0.1 1</ambient>
+                        <diffuse>0.1 0.1 0.3 1</diffuse>
+                        <specular>0 0 0 0</specular>
+                        <emissive>0 0 0 1</emissive>
+                    </material>
+
+                </visual>
+
+            </link>
+
+            <!-- Cars - beam joint -->
+            <link name="cars_beam">
+
+                <pose relative_to="main_structure">0.015 0 0 0 0 0</pose>
+
+                <!-- Atributos físicos del enlace-->
+                <inertial>
+
+                    <!-- Masa del cuerpo (kilogramos)-->
+                    <mass>7.538</mass>
+
+                    <!-- Tensor de inercia (kg * m^2)-->
+                    <inertia>
+                        <ixx>0.0009</ixx>
+                        <ixy>0.0</ixy>
+                        <ixz>0.0</ixz>
+                        <iyy>0.198</iyy>
+                        <iyz>0.0</iyz>
+                        <izz>0.198</izz>
+                    </inertia>
+
+                </inertial>
+
+                <!-- Configura los atributos de colisión -->
+                <collision name="collision">
+
+                    <!-- Configura el tipo de geometría -->
+                    <geometry>
+
+                        <!-- Importar malla desde un archivo STL -->
+                        <mesh>
+                            <uri>model://ROS/STL/cars_beam.stl</uri>
+                            <!--<scale>0.001 0.001 0.001</scale>-->
+                        </mesh>
+
+                    </geometry>
+
+                </collision>
+
+                <!-- Configura los atributos visuales -->
+                <visual name="visual">
+
+                    <!-- Configura el tipo de geometría -->
+                    <geometry>
+
+                        <!-- Importar malla desde un archivo STL -->
+                        <mesh>
+                            <uri>model://ROS/STL/cars_beam.stl</uri>
+                            <!--<scale>0.001 0.001 0.001</scale>-->
+                        </mesh>
+
+                    </geometry>
+
+                    <!-- Color tutorial: https://classic.gazebosim.org/tutorials?tut=color_model -->
+                    <material>
+                        <ambient>0.1 0.1 0.1 1</ambient>
+                        <diffuse>0.1 0.1 0.1 1</diffuse>
+                        <specular>0 0 0 0</specular>
+                        <emissive>0 0 0 1</emissive>
+                    </material>
+
+                </visual>
+
+            </link>
+
+            <!-- Piston -->
+            <link name="piston">
+
+                <pose relative_to="cars_beam">0.083 0 0 0 0 0</pose>
+
+                <!-- Atributos físicos del enlace-->
+                <inertial>
+
+                    <!-- Masa del cuerpo (kilogramos)-->
+                    <mass>4.211</mass>
+
+                    <!-- Inertia tensor (kg * m^2)-->
+                    <inertia>
+                        <ixx>0.0009</ixx>
+                        <ixy>0.0</ixy>
+                        <ixz>0.0</ixz>
+                        <iyy>0.198</iyy>
+                        <iyz>0.0</iyz>
+                        <izz>0.198</izz>
+                    </inertia>
+
+                </inertial>
+
+                <!-- Configura los atributos de colisión -->
+                <collision name="collision">
+
+                    <!-- Configura el tipo de geometría -->
+                    <geometry>
+
+                        <!-- Importar malla desde un archivo STL -->
+                        <mesh>
+                            <uri>model://ROS/STL/piston.stl</uri>
+                            <!--<scale>0.001 0.001 0.001</scale>-->
+                        </mesh>
+
+                    </geometry>
+
+                </collision>
+
+                <!-- Configura los atributos visuales -->
+                <visual name="visual">
+
+                    <!-- Configura el tipo de geometría -->
+                    <geometry>
+
+                        <!-- Importar malla desde un archivo STL -->
+                        <mesh>
+                            <uri>model://ROS/STL/piston.stl</uri>
+                            <!--<scale>0.001 0.001 0.001</scale>-->
+                        </mesh>
+
+                    </geometry>
+
+                    <!-- Color tutorial: https://classic.gazebosim.org/tutorials?tut=color_model -->
+                    <material>
+                        <ambient>0.1 0.1 0.1 1</ambient>
+                        <diffuse>0.1 0.1 0.1 1</diffuse>
+                        <specular>0 0 0 0</specular>
+                        <emissive>0 0 0 1</emissive>
+                    </material>
+
+                </visual>
+
+            </link>
+
+            <!-- Piston -->
+            <link name="end_effector">
+
+                <pose relative_to="piston">0 0 0 0 0 0</pose>
+
+                <!-- Atributos físicos del enlace-->
+                <inertial>
+
+                    <!-- Masa del cuerpo (kilogramos)-->
+                    <mass>1.202</mass>
+
+                    <!-- Inertia tensor (kg * m^2)-->
+                    <inertia>
+                        <ixx>0.0009</ixx>
+                        <ixy>0.0</ixy>
+                        <ixz>0.0</ixz>
+                        <iyy>0.198</iyy>
+                        <iyz>0.0</iyz>
+                        <izz>0.198</izz>
+                    </inertia>
+
+                </inertial>
+
+                <!-- Configura los atributos de colisión -->
+                <collision name="collision">
+
+                    <!-- Configura el tipo de geometría -->
+                    <geometry>
+
+                        <!-- Importar malla desde un archivo STL -->
+                        <mesh>
+                            <uri>model://ROS/STL/end_effector.stl</uri>
+                            <!--<scale>0.001 0.001 0.001</scale>-->
+                        </mesh>
+
+                    </geometry>
+
+                </collision>
+
+                <!-- Configura los atributos visuales -->
+                <visual name="visual">
+
+                    <!-- Configura el tipo de geometría -->
+                    <geometry>
+
+                        <!-- Import mesh from STL file -->
+                        <mesh>
+                            <uri>model://ROS/STL/end_effector.stl</uri>
+                            <!--<scale>0.001 0.001 0.001</scale>-->
+                        </mesh>
+
+                    </geometry>
+
+                    <!-- Color tutorial: https://classic.gazebosim.org/tutorials?tut=color_model -->
+                    <material>
+                        <ambient>0.1 0.1 0.1 1</ambient>
+                        <diffuse>0.1 0.1 0.1 1</diffuse>
+                        <specular>0 0 0 0</specular>
+                        <emissive>0 0 0 1</emissive>
+                    </material>
+
+                </visual>
+
+            </link>
+
+            <!-- Fijación de la estructura principal -->
+            <joint name="main_fixed" type="fixed">
+
+                <!-- Define la pose con respecto al movimiento que se realizará -->
+                <pose relative_to="__model__" />
+
+                <!-- Establece quién lidera el movimiento y quién lo sigue -->
+                <parent>world</parent>
+                <child>main_structure</child>
+
+            </joint>
+
+            <!-- Joint 1 (Car 1) -->
+            <joint name="joint_1" type="prismatic">
+
+                <!-- Define la pose con respecto al movimiento que se realizará -->
+                <pose relative_to="main_structure" />
+
+                <!-- Establece quién lidera el movimiento y quién lo sigue. -->
+                <parent>main_structure</parent>
+                <child>cars_beam</child>
+
+                <!-- Configura los atributos para el eje de actuación de la articulación -->
+                <axis>
+
+                    <!-- Configura el eje de actuación de la articulación -->
+                    <xyz>0 1 0</xyz>
+
+                    <!-- Amortiguación de la articulación 
+                    <dynamics>
+                        <damping>0.05</damping>
+                    </dynamics> -->
+
+                </axis>
+
+            </joint>
+
+            <!-- Joint 2 (Car 2) -->
+            <joint name="joint_2" type="prismatic">
+
+                <!-- Define la pose con respecto al movimiento que se realizará -->
+                <pose relative_to="cars_beam" />
+
+                <!-- Establece quién lidera el movimiento y quién lo sigue -->
+                <parent>cars_beam</parent>
+                <child>piston</child>
+
+                <!-- Configura los atributos para el eje de actuación de la articulación -->
+                <axis>
+
+                    <!-- Configura el eje de actuación de la articulación -->
+                    <xyz>1 0 0</xyz>
+
+                    <!-- Amortiguación de la articulación 
+                    <dynamics>
+                        <damping>0.05</damping>
+                    </dynamics> -->
+
+                </axis>
+
+            </joint>
+
+            <!-- Joint 3 (Piston) -->
+            <joint name="joint_3" type="prismatic">
+
+                <!-- Define la pose con respecto al movimiento que se realizará -->
+                <pose relative_to="cars_beam" />
+
+                <!-- Establece quién lidera el movimiento y quién lo sigue -->
+                <parent>piston</parent>
+                <child>end_effector</child>
+
+                <!-- Configura los atributos para el eje de actuación de la articulación -->
+                <axis>
+
+                    <!-- Configura el eje de actuación de la articulación -->
+                    <xyz>0 0 -1</xyz>
+
+                    <!-- Joint damping 
+                    <dynamics>
+                        <damping>0.05</damping>
+                    </dynamics> -->
+
+                </axis>
+
+            </joint>
+
+            <!-- Controlador de trayectoria de las articulaciones -->
+            <plugin
+                filename="gz-sim-joint-trajectory-controller-system"
+                name="gz::sim::systems::JointTrajectoryController">
+                
+                <!-- Controlador de trayectoria de la articulación 1 -->
+                <joint_name>joint_1</joint_name>
+                <initial_position>0</initial_position>
+                <position_p_gain>14.0</position_p_gain>
+                <position_d_gain>14.0</position_d_gain>
+                
+                <!-- Controlador de trayectoria de la articulación 2 -->
+                <joint_name>joint_2</joint_name>
+                <initial_position>0</initial_position>
+                <position_p_gain>14.0</position_p_gain>
+                <position_d_gain>14.0</position_d_gain>
+
+                <!-- Controlador de trayectoria de la articulación 3 -->
+                <joint_name>joint_3</joint_name>
+                <initial_position>0</initial_position>
+                <position_p_gain>14.0</position_p_gain>
+                <position_d_gain>14.0</position_d_gain>
+
+            </plugin>
+
+            <!-- Para las trayectorias
+                gz topic -t "/model/euclidian_robot/joint_trajectory" -m gz.msgs.JointTrajectory -p 'joint_names: "joint_1"; joint_names: "joint_2"; joint_names: "joint_3"; points { positions: 0; positions: 0; positions: 0; time_from_start {  sec: 7; nsec: 0 } }; points { positions: 0; positions: -3; positions: 4; time_from_start {  sec: 14; nsec: 770000000 } }; points { positions: -3; positions: 4; positions: -5; time_from_start {  sec: 21; nsec: 770000000 } }'
+            -->
+
+        </model>
+
+    </world>
+
+</sdf>
